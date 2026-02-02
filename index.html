@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEG3125 Lab #2: Group 13</title>
+  <link href="styles/style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body onload="document.getElementById('defaultOpen').click();">  
+
+  <header class="brandbar">
+    <img src="images/foodmart_logo.svg" alt="Foodmart Logo" class="brand-logo" />
+
+    <nav class="tab" aria-label="Main navigation">
+      <button id="productsTab" class="tablinks" onclick="openInfo(event, 'Products')" type="button" aria-label="Products">
+        <img src="images/products_icon.svg" alt="" class="tab-icon" />
+        <span class="tab-text">Products</span>
+      </button>
+
+      <button id="cartTab" class="tablinks" onclick="openInfo(event, 'Cart')" type="button" aria-label="Cart">
+        <img src="images/cart_icon.svg" alt="" class="tab-icon" />
+        <span class="tab-text">Cart</span>
+      </button>
+
+      <button id="defaultOpen" class="tablinks" onclick="openInfo(event, 'Customer')" type="button" aria-label="Customer">
+        <img src="images/profile_icon.svg" alt="" class="tab-icon" />
+        <span class="tab-text">Customer</span>
+      </button>
+    </nav>
+  </header>
+  
+
+
+  <section id="Products" class="tabcontent">
+    <h2>Products</h2>
+    <p>Choose your items (sorted by price from lowest to highest).</p>
+
+    
+    <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="products/broccoli_real.png" alt="Broccoli" style="width:100%">
+                    <h2>Broccoli - $0.50</h2>
+                </div>
+                <div class="flip-card-back">
+                  <h2>Broccoli - $0.50</h2>
+                  <p2>- Vegetarian
+                      - Gluten Free
+                      - Lactose Intolerant
+                      - Diabetic
+                      - Organic</p2>
+                </div>
+            </div>
+        </div>
+
+    
+
+    <div id="displayProduct" class="product-list"></div>
+
+    <div class="actions">
+      <button type="button" onclick="selectedItems(); openInfo({ currentTarget: document.getElementById('cartTab') }, 'Cart');">
+        Add selected items to cart →
+      </button>
+    </div>
+  </section>
+
+
+
+  <section id="Cart" class="tabcontent">
+    <h2>Cart</h2>
+    <p>Your selected items and total will appear here.</p>
+
+    <div id="displayCart" class="cart-box"></div>
+
+    <div class="actions">
+      <button type="button"
+        onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
+        ← Back to Products
+      </button>
+    </div>
+  </section>
+
+
+  
+  <section id="Customer" class="tabcontent">
+    <h2>Customer Information</h2>
+    <p>Please tell us your preferences so we can filter products for you.</p>
+
+    <form id="customerForm">
+      <fieldset>
+        <legend>Dietary Restrictions</legend>
+
+        <label class="form-row">
+          <input type="checkbox" id="prefVegetarian" name="prefVegetarian" />
+          Vegetarian (hide meats/fish)
+        </label>
+
+        <label class="form-row">
+          <input type="checkbox" id="prefGlutenFree" name="prefGlutenFree" />
+          Gluten intolerance (hide products with wheat)
+        </label>
+
+
+        <label class="form-row">
+          <input type="checkbox" id="prefLactoseFree" name="prefLactoseFree" />
+          Lactose intolerance (hide products with dairy)
+        </label>
+
+        <label class="form-row">
+          <input type="checkbox" id="prefDiabeticFriendly" name="prefDiabeticFriendly" />
+          Diabetic friendly (hide products with high sugar)
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Organic Preference</legend>
+
+        <label class="form-row">
+          <input type="radio" name="prefOrganic" value="any" checked />
+          Show all (organic & non-organic)
+        </label>
+
+        <label class="form-row">
+          <input type="radio" name="prefOrganic" value="organic" />
+          Prefer organic
+        </label>
+
+        <label class="form-row">
+          <input type="radio" name="prefOrganic" value="nonOrganic" />
+          Prefer non-organic
+        </label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button"
+          onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
+          Browse our Products
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <div id="signature">
+    Site created by Conall McCooeye - Yann Giffaux - Hengjing Zhang
+  </div>
+
+  <script src="scripts/groceries.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
