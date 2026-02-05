@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SEG3125 Lab #2: Group 13</title>
+  <title>SEG3125 Lab #3: Group 13</title>
   <link href="styles/style.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body onload="document.getElementById('defaultOpen').click();">  
+<body onload="document.getElementById('defaultOpen').click();">
 
   <header class="brandbar">
     <img src="images/foodmart_logo.svg" alt="Foodmart Logo" class="brand-logo" />
@@ -30,13 +30,54 @@
     </nav>
   </header>
   
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <button type="button" class="crumb active" data-tab="Customer" onclick="navigateTo('Customer')">Customer</button>
+    <span class="crumb-sep">›</span>
+    <button type="button" class="crumb" data-tab="Products" onclick="navigateTo('Products')">Products</button>
+    <span class="crumb-sep">›</span>
+    <button type="button" class="crumb" data-tab="Cart" onclick="navigateTo('Cart')">Cart</button>
+  </nav>
 
 
   <section id="Products" class="tabcontent">
     <h2>Products</h2>
-    <p>Choose your items (sorted by price from lowest to highest).</p>
+    <p>Select items to add to your cart. Use categories and filters to find products faster.</p>
 
-    <div id="displayProduct" class="product-list"></div>
+    <div class="products-layout">
+      <aside class="side-panel" aria-label="Category navigation">
+        <h3>Categories</h3>
+        <div id="categoryMenu" class="category-menu"></div>
+      </aside>
+
+      <div class="products-main">
+        <div class="filters" aria-label="Product filters">
+          <div class="filter-item">
+            <label for="productSearch">Search</label>
+            <input id="productSearch" type="search" placeholder="Search products (e.g., apple, yogurt)" />
+          </div>
+
+          <div class="filter-item">
+            <label for="categorySelect">Category</label>
+            <select id="categorySelect"></select>
+          </div>
+
+          <div class="filter-item filter-slider">
+            <label for="maxPrice">Max price: <span id="maxPriceValue">$0.00</span></label>
+            <input id="maxPrice" type="range" />
+          </div>
+
+          <div class="filter-item filter-toggle">
+            <label class="toggle-row">
+              <input id="toggleGroupBy" type="checkbox" />
+              Group by category
+            </label>
+            <div class="results" id="resultsCount">0 item(s) shown</div>
+          </div>
+        </div>
+
+        <div id="displayProduct" class="product-list"></div>
+      </div>
+    </div>
 
     <div class="actions">
       <button type="button" onclick="selectedItems(); openInfo({ currentTarget: document.getElementById('cartTab') }, 'Cart');">
@@ -46,7 +87,6 @@
   </section>
 
 
-
   <section id="Cart" class="tabcontent">
     <h2>Cart</h2>
     <p>Your selected items and total will appear here.</p>
@@ -54,18 +94,16 @@
     <div id="displayCart" class="cart-box"></div>
 
     <div class="actions">
-      <button type="button"
-        onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
+      <button type="button" onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
         ← Back to Products
       </button>
     </div>
   </section>
 
 
-  
   <section id="Customer" class="tabcontent">
     <h2>Customer Information</h2>
-    <p>Please tell us your preferences so we can filter products for you.</p>
+    <p>Tell us your preferences so we can filter products for you.</p>
 
     <form id="customerForm">
       <fieldset>
@@ -81,15 +119,14 @@
           Gluten intolerance (hide products with wheat)
         </label>
 
-
         <label class="form-row">
           <input type="checkbox" id="prefLactoseFree" name="prefLactoseFree" />
-          Lactose intolerance (hide products with dairy)
+          Lactose intolerance (hide dairy)
         </label>
 
         <label class="form-row">
           <input type="checkbox" id="prefDiabeticFriendly" name="prefDiabeticFriendly" />
-          Diabetic friendly (hide products with high sugar)
+          Diabetic friendly (hide high-sugar products)
         </label>
       </fieldset>
 
@@ -113,9 +150,8 @@
       </fieldset>
 
       <div class="actions">
-        <button type="button"
-          onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
-          Browse our Products
+        <button type="button" onclick="openInfo({ currentTarget: document.getElementById('productsTab') }, 'Products')">
+          View Products & Filters
         </button>
       </div>
     </form>
