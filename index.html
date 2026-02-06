@@ -13,6 +13,11 @@
     <img src="images/foodmart_logo.svg" alt="Foodmart Logo" class="brand-logo" />
 
     <nav class="tab" aria-label="Main navigation">
+      <button id="defaultOpen" class="tablinks" onclick="openInfo(event, 'Customer')" type="button" aria-label="Customer">
+        <img src="images/profile_icon.svg" alt="" class="tab-icon" />
+        <span class="tab-text">Customer</span>
+      </button>
+      
       <button id="productsTab" class="tablinks" onclick="openInfo(event, 'Products')" type="button" aria-label="Products">
         <img src="images/products_icon.svg" alt="" class="tab-icon" />
         <span class="tab-text">Products</span>
@@ -23,10 +28,7 @@
         <span class="tab-text">Cart</span>
       </button>
 
-      <button id="defaultOpen" class="tablinks" onclick="openInfo(event, 'Customer')" type="button" aria-label="Customer">
-        <img src="images/profile_icon.svg" alt="" class="tab-icon" />
-        <span class="tab-text">Customer</span>
-      </button>
+      
     </nav>
   </header>
   

@@ -181,6 +181,7 @@ function updateCategorySelection(newCategory) {
 function initCategoryUI() {
   const select = $("categorySelect");
   const menu = $("categoryMenu");
+  const prefs = getUserPreferences();
   if (!select || !menu) return;
 
   select.innerHTML = "";
@@ -191,6 +192,22 @@ function initCategoryUI() {
 
   const categories = getAllCategories(window.products);
   for (const c of categories) {
+    if (prefs.vegetarian && (c !== "Vegetables" && c !== "Fruits")) continue;;
+
+    // Removes empty category buttons for gluten intolerance preference
+    if (prefs.glutenIntolerance && c === "Bakery") {
+      continue;
+    }
+
+    // Removes empty category buttons for lactose intolerance preference
+    if (prefs.lactoseIntolerance && c === "Dairy") {
+      continue;
+    }
+
+    // Removes empty category buttons for diabetic friendly preference
+    if (prefs.diabeticFriendly && c === "Dairy") {
+      continue;
+    }
     const opt = document.createElement("option");
     opt.value = c;
     opt.textContent = c;
@@ -207,6 +224,23 @@ function initCategoryUI() {
   menu.appendChild(allBtn);
 
   for (const c of categories) {
+    if (prefs.vegetarian && (c !== "Vegetables" && c !== "Fruits")) continue;;
+
+    // Removes empty category buttons for gluten intolerance preference
+    if (prefs.glutenIntolerance && c === "Bakery") {
+      continue;
+    }
+
+    // Removes empty category buttons for lactose intolerance preference
+    if (prefs.lactoseIntolerance && c === "Dairy") {
+      continue;
+    }
+
+    // Removes empty category buttons for diabetic friendly preference
+    if (prefs.diabeticFriendly && c === "Dairy") {
+      continue;
+    }
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "category-btn";
@@ -449,6 +483,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (form) {
     form.addEventListener("change", () => {
       const productsTab = $("Products");
+
+      // Preserve current category selection so rebuilding doesn't reset it.
+      const prevCategory = $("categorySelect") ? String($("categorySelect").value) : "All";
+
+      // Rebuild category UI to apply preference-based filtering of buttons/options.
+      initCategoryUI();
+
+      // Restore previously selected category if it still exists.
+      updateCategorySelection(prevCategory);
+
       if (productsTab && productsTab.style.display === "block") {
         renderProductsList();
       }
