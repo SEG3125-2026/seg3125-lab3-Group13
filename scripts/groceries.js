@@ -3,6 +3,7 @@
 const products = [
   {
     name: "Broccoli",
+    category: "Vegetables",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -14,6 +15,7 @@ const products = [
   },
   {
     name: "Carrots",
+    category: "Vegetables",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -25,6 +27,7 @@ const products = [
   },
   {
     name: "Lettuce",
+    category: "Vegetables",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -36,6 +39,7 @@ const products = [
   },
   {
     name: "Apples",
+    category: "Fruits",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -47,6 +51,7 @@ const products = [
   },
   {
     name: "Bananas",
+    category: "Fruits",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -58,6 +63,7 @@ const products = [
   },
   {
     name: "Strawberries",
+    category: "Fruits",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: true,
@@ -69,6 +75,7 @@ const products = [
   },
   {
     name: "Bread",
+    category: "Bakery",
     vegetarian: true,
     glutenFree: false,
     lactoseIntolerant: true,
@@ -80,6 +87,7 @@ const products = [
   },
   {
     name: "Yogurt",
+    category: "Dairy",
     vegetarian: true,
     glutenFree: true,
     lactoseIntolerant: false,
@@ -91,6 +99,7 @@ const products = [
   },
   {
     name: "Pork Chops",
+    category: "Meats",
     vegetarian: false, // meat
     glutenFree: true,
     lactoseIntolerant: true,
@@ -102,6 +111,7 @@ const products = [
   },
   {
     name: "Salmon",
+    category: "Meats",
     vegetarian: false, // fish
     glutenFree: true,
     lactoseIntolerant: true,
@@ -113,8 +123,8 @@ const products = [
   },
 ];
 
-
 window.products = products;
+
 function restrictListProducts(restriction) {
   const out = [];
   for (const p of products) {
@@ -123,7 +133,6 @@ function restrictListProducts(restriction) {
     if (restriction === "Vegetarian") {
       if (p.vegetarian) out.push(p.name);
     } else if (restriction === "GlutenFree") {
-      // For wheat-based filtering, you could also use: if (!p.containsWheat) out.push(p.name);
       if (p.glutenFree) out.push(p.name);
     } else if (restriction === "lactoseIntolerant") {
       if (p.lactoseIntolerant) out.push(p.name);
@@ -137,7 +146,6 @@ function restrictListProducts(restriction) {
 }
 window.restrictListProducts = restrictListProducts;
 
-/** Compute total price from an array of product names. */
 function getTotalPrice(chosenNames) {
   if (!Array.isArray(chosenNames) || chosenNames.length === 0) return 0;
 

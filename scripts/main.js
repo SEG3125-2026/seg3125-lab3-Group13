@@ -6,6 +6,8 @@
 - Filter + sort products by price (low -> high)
 - Render products with price
 - Build cart summary + total
+- Product categories + filters (category, search, price slider)
+- New navigation pattern: Breadcrumbs (clickable)
 */
 
 function $(id) {
@@ -18,8 +20,6 @@ function formatPrice(value) {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(num);
 }
 
-
-/** Read preferences from Customer form */
 function getUserPreferences() {
   const vegetarian = !!$("prefVegetarian")?.checked;
   const glutenIntolerance = !!$("prefGlutenFree")?.checked;
@@ -33,8 +33,6 @@ function getUserPreferences() {
   return { vegetarian, glutenIntolerance, lactoseIntolerance, diabeticFriendly, organicPref };
 }
 
-
-
 /** Filter products based on preferences and sort by price ascending. */
 function filterAndSortProducts(allProducts, prefs) {
   const safeList = Array.isArray(allProducts) ? allProducts.slice() : [];
@@ -42,33 +40,32 @@ function filterAndSortProducts(allProducts, prefs) {
   const filtered = safeList.filter((p) => {
     if (!p || typeof p !== "object") return false;
 
-    // Vegetarian: hide meats/fish (your dataset uses vegetarian boolean)
+    // Vegetarian: hide meats/fish
     if (prefs.vegetarian && p.vegetarian !== true) return false;
 
-    // Gluten intolerance: avoid wheat products (prefer containsWheat if exists)
+    // Gluten intolerance: avoid wheat products
     if (prefs.glutenIntolerance) {
       const hasWheatField = Object.prototype.hasOwnProperty.call(p, "containsWheat");
       if (hasWheatField) {
-        if (p.containsWheat === true) return false; // contains wheat -> hide
+        if (p.containsWheat === true) return false;
       } else {
-        // fallback for older datasets
         if (p.glutenFree !== true) return false;
       }
     }
 
-    // Lactose intolerance: avoid dairy products (prefer containsDairy if exists)
+    // Lactose intolerance: avoid dairy products
     if (prefs.lactoseIntolerance) {
-      const hasDairyField = Object.prototype.hasOwnProperty.call(p, "lactoseIntolerant");
-      if (hasDairyField && p.lactoseIntolerant !== true) return false;
+      const hasLactoseField = Object.prototype.hasOwnProperty.call(p, "lactoseIntolerant");
+      if (hasLactoseField && p.lactoseIntolerant !== true) return false;
     }
 
-    // Diabetic friendly: avoid high-sugar products (prefer highSugar if exists)
+    // Diabetic friendly: avoid high-sugar products
     if (prefs.diabeticFriendly) {
-      const hasHighSugarField = Object.prototype.hasOwnProperty.call(p, "diabetic");
-      if (hasHighSugarField && p.diabetic !== true) return false;
+      const hasDiabeticField = Object.prototype.hasOwnProperty.call(p, "diabetic");
+      if (hasDiabeticField && p.diabetic !== true) return false;
     }
 
-    // Organic preference: only filter if the field exists
+    // Organic preference
     const hasOrganicField = Object.prototype.hasOwnProperty.call(p, "organic");
     if (hasOrganicField) {
       if (prefs.organicPref === "organic" && p.organic !== true) return false;
@@ -93,64 +90,320 @@ function filterAndSortProducts(allProducts, prefs) {
 }
 
 
+function getPriorityCategoryOrder() {
+  return ["Vegetables", "Fruits", "Dairy", "Meats"];
+}
 
-/** Render products into #displayProduct (checkbox list with price) */
+function getAllCategories(allProducts) {
+  const set = new Set();
+  for (const p of Array.isArray(allProducts) ? allProducts : []) {
+    if (p && typeof p.category === "string" && p.category.trim()) set.add(p.category.trim());
+  }
+  const list = Array.from(set);
+
+  const priority = getPriorityCategoryOrder();
+  const prioritySet = new Set(priority);
+
+  const head = priority.filter((c) => set.has(c));
+  const tail = list.filter((c) => !prioritySet.has(c)).sort((a, b) => a.localeCompare(b));
+
+  return head.concat(tail);
+}
+
+function getMaxProductPrice(allProducts) {
+  let max = 0;
+  for (const p of Array.isArray(allProducts) ? allProducts : []) {
+    const price = Number(p?.price);
+    if (Number.isFinite(price)) max = Math.max(max, price);
+  }
+  return Math.max(1, Math.ceil(max));
+}
+
+function setText(id, text) {
+  const el = $(id);
+  if (el) el.textContent = text;
+}
+
+function getProductPageFilters() {
+  const search = String($("productSearch")?.value ?? "").trim().toLowerCase();
+
+  const categorySelect = $("categorySelect");
+  const selectedCategory = categorySelect ? String(categorySelect.value) : "All";
+
+  const maxPriceEl = $("maxPrice");
+  const maxPrice = maxPriceEl ? Number(maxPriceEl.value) : Infinity;
+
+  const groupByCategory = !!$("toggleGroupBy")?.checked;
+
+  return { search, selectedCategory, maxPrice, groupByCategory };
+}
+
+function applyProductPageFilters(list) {
+  const { search, selectedCategory, maxPrice } = getProductPageFilters();
+
+  return list.filter((p) => {
+    const name = String(p?.name ?? "").toLowerCase();
+    const category = String(p?.category ?? "").trim();
+
+    if (selectedCategory !== "All" && category !== selectedCategory) return false;
+    if (search && !name.includes(search)) return false;
+
+    const price = Number(p?.price);
+    if (Number.isFinite(maxPrice) && Number.isFinite(price) && price > maxPrice) return false;
+
+    return true;
+  });
+}
+
+function getCheckedProductNames() {
+  const checked = new Set();
+  const ele = document.getElementsByName("product");
+  for (let i = 0; i < ele.length; i++) {
+    if (ele[i].checked) checked.add(String(ele[i].value));
+  }
+  return checked;
+}
+
+function updateCategorySelection(newCategory) {
+  const select = $("categorySelect");
+  if (select) select.value = newCategory;
+
+  const buttons = document.querySelectorAll(".category-btn");
+  buttons.forEach((btn) => {
+    const cat = btn.getAttribute("data-category");
+    btn.classList.toggle("active", cat === newCategory);
+    btn.setAttribute("aria-current", cat === newCategory ? "page" : "false");
+  });
+
+  renderProductsList();
+}
+
+function initCategoryUI() {
+  const select = $("categorySelect");
+  const menu = $("categoryMenu");
+  const prefs = getUserPreferences();
+  if (!select || !menu) return;
+
+  select.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "All";
+  optAll.textContent = "All categories";
+  select.appendChild(optAll);
+
+  const categories = getAllCategories(window.products);
+  for (const c of categories) {
+    if (prefs.vegetarian && (c !== "Vegetables" && c !== "Fruits")) continue;;
+
+    // Removes empty category buttons for gluten intolerance preference
+    if (prefs.glutenIntolerance && c === "Bakery") {
+      continue;
+    }
+
+    // Removes empty category buttons for lactose intolerance preference
+    if (prefs.lactoseIntolerance && c === "Dairy") {
+      continue;
+    }
+
+    // Removes empty category buttons for diabetic friendly preference
+    if (prefs.diabeticFriendly && c === "Dairy") {
+      continue;
+    }
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    select.appendChild(opt);
+  }
+
+  menu.innerHTML = "";
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "category-btn active";
+  allBtn.textContent = "All";
+  allBtn.setAttribute("data-category", "All");
+  allBtn.addEventListener("click", () => updateCategorySelection("All"));
+  menu.appendChild(allBtn);
+
+  for (const c of categories) {
+    if (prefs.vegetarian && (c !== "Vegetables" && c !== "Fruits")) continue;;
+
+    // Removes empty category buttons for gluten intolerance preference
+    if (prefs.glutenIntolerance && c === "Bakery") {
+      continue;
+    }
+
+    // Removes empty category buttons for lactose intolerance preference
+    if (prefs.lactoseIntolerance && c === "Dairy") {
+      continue;
+    }
+
+    // Removes empty category buttons for diabetic friendly preference
+    if (prefs.diabeticFriendly && c === "Dairy") {
+      continue;
+    }
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "category-btn";
+    btn.textContent = c;
+    btn.setAttribute("data-category", c);
+    btn.addEventListener("click", () => updateCategorySelection(c));
+    menu.appendChild(btn);
+  }
+
+  updateCategorySelection("All");
+}
+
+function initPriceSlider() {
+  const slider = $("maxPrice");
+  if (!slider) return;
+
+  const max = getMaxProductPrice(window.products);
+  slider.min = "0";
+  slider.max = String(max);
+  slider.step = "0.5";
+  slider.value = String(max);
+
+  setText("maxPriceValue", formatPrice(max));
+}
+
+function initProductFiltersEvents() {
+  const search = $("productSearch");
+  const select = $("categorySelect");
+  const slider = $("maxPrice");
+  const toggleGroup = $("toggleGroupBy");
+
+  if (search) search.addEventListener("input", () => renderProductsList());
+
+  if (select) {
+    select.addEventListener("change", () => updateCategorySelection(String(select.value)));
+  }
+
+  if (slider) {
+    slider.addEventListener("input", () => {
+      const val = Number(slider.value);
+      setText("maxPriceValue", formatPrice(val));
+      renderProductsList();
+    });
+  }
+
+  if (toggleGroup) toggleGroup.addEventListener("change", () => renderProductsList());
+}
+
+function renderProductRow(p, checkedSet) {
+  const name = String(p.name ?? "Unnamed");
+  const priceText = formatPrice(p.price);
+  const imageSrc = p.image;
+  const category = String(p.category ?? "Other").trim() || "Other";
+
+  const row = document.createElement("div");
+  row.className = "product-row";
+
+  const img = document.createElement("img");
+  img.src = imageSrc;
+  img.alt = name;
+  img.className = "product-image";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.name = "product";
+  checkbox.value = name;
+  checkbox.id = `prod_${name.replace(/\s+/g, "_")}`;
+
+  if (checkedSet && checkedSet.has(name)) checkbox.checked = true;
+
+  const label = document.createElement("label");
+  label.htmlFor = checkbox.id;
+
+  let suffix = ` — ${priceText}`;
+  if (Object.prototype.hasOwnProperty.call(p, "organic")) {
+    suffix += p.organic ? " (Organic)" : " (Non-organic)";
+  }
+  label.appendChild(document.createTextNode(name + suffix));
+
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = category;
+
+  row.appendChild(img);
+  row.appendChild(checkbox);
+  row.appendChild(label);
+  row.appendChild(badge);
+
+  return row;
+}
+
 function renderProductsList() {
   const container = $("displayProduct");
   if (!container) return;
 
+  const checkedSet = getCheckedProductNames();
   container.innerHTML = "";
 
-  // `products` comes from groceries.js
   const prefs = getUserPreferences();
-  const list = filterAndSortProducts(window.products, prefs);
+  const baseList = filterAndSortProducts(window.products, prefs);
+  const list = applyProductPageFilters(baseList);
+
+  const countEl = $("resultsCount");
+  if (countEl) countEl.textContent = `${list.length} item(s) shown`;
 
   if (!list.length) {
     const msg = document.createElement("p");
-    msg.textContent = "No products match your preferences. Try changing your filters on the Customer page.";
+    msg.textContent = "No products match your filters. Try changing your preferences or filters.";
     container.appendChild(msg);
     return;
   }
 
-  for (const p of list) {
-    const name = String(p.name ?? "Unnamed");
-    const priceText = formatPrice(p.price);
-    const imageSrc = p.image; 
+  const { selectedCategory, groupByCategory } = getProductPageFilters();
 
-    const row = document.createElement("div");
-    row.className = "product-row";
+  if (groupByCategory && selectedCategory === "All") {
+    const categories = getAllCategories(list);
 
-    const img = document.createElement("img");
-    img.src = imageSrc;
-    img.alt = name;
-    img.className = "product-image"; 
+    for (const cat of categories) {
+      const items = list.filter((p) => String(p.category ?? "").trim() === cat);
+      if (!items.length) continue;
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.name = "product";
-    checkbox.value = name;
-    checkbox.id = `prod_${name.replace(/\s+/g, "_")}`;
+      const h = document.createElement("h3");
+      h.className = "category-heading";
+      h.textContent = cat;
+      container.appendChild(h);
 
-    const label = document.createElement("label");
-    label.htmlFor = checkbox.id;
-
-    // Label text: "Name — $X.XX" (+ optional organic tag if available)
-    let suffix = ` — ${priceText}`;
-    if (Object.prototype.hasOwnProperty.call(p, "organic")) {
-      suffix += p.organic ? " (Organic)" : " (Non-organic)";
+      for (const p of items) {
+        container.appendChild(renderProductRow(p, checkedSet));
+      }
     }
+    return;
+  }
 
-    label.appendChild(document.createTextNode(name + suffix));
-
-    row.appendChild(img);
-    row.appendChild(checkbox);
-    row.appendChild(label);
-
-    container.appendChild(row);
+  for (const p of list) {
+    container.appendChild(renderProductRow(p, checkedSet));
   }
 }
 
-/** Tab switching */
+function updateBreadcrumb(activeTab) {
+  const crumbs = document.querySelectorAll(".crumb");
+  crumbs.forEach((c) => {
+    const tab = c.getAttribute("data-tab");
+    const isActive = tab === activeTab;
+    c.classList.toggle("active", isActive);
+    c.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+}
+
+function navigateTo(tabName) {
+  const btn =
+    tabName === "Customer" ? $("defaultOpen") :
+    tabName === "Products" ? $("productsTab") :
+    tabName === "Cart" ? $("cartTab") :
+    null;
+
+  if (btn) {
+    openInfo({ currentTarget: btn }, tabName);
+  } else {
+    openInfo(null, tabName);
+  }
+}
+window.navigateTo = navigateTo;
+
 function openInfo(evt, tabName) {
   const tabcontent = document.getElementsByClassName("tabcontent");
   for (let i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
@@ -165,15 +418,16 @@ function openInfo(evt, tabName) {
 
   if (evt && evt.currentTarget) evt.currentTarget.className += " active";
 
-  // Auto-refresh content when switching tabs
+  updateBreadcrumb(tabName);
+
   if (tabName === "Products") {
     renderProductsList();
   } else if (tabName === "Cart") {
     selectedItems();
   }
 }
+window.openInfo = openInfo;
 
-/** Cart builder (writes into #displayCart) */
 function selectedItems() {
   const c = $("displayCart");
   if (!c) return;
@@ -193,10 +447,8 @@ function selectedItems() {
 
   if (!chosenNames.length) return;
 
-  // Build list + total
   const ul = document.createElement("ul");
 
-  // Map for quick lookup (name -> product)
   const map = new Map();
   if (Array.isArray(window.products)) {
     for (const p of window.products) map.set(String(p.name), p);
@@ -205,11 +457,7 @@ function selectedItems() {
   for (const name of chosenNames) {
     const p = map.get(String(name));
     const li = document.createElement("li");
-    if (p) {
-      li.textContent = `${name} — ${formatPrice(p.price)}`;
-    } else {
-      li.textContent = name;
-    }
+    li.textContent = p ? `${name} — ${formatPrice(p.price)}` : name;
     ul.appendChild(li);
   }
 
@@ -230,16 +478,30 @@ function selectedItems() {
   c.appendChild(totalLine);
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const form = $("customerForm");
   if (form) {
     form.addEventListener("change", () => {
-      // Refresh product list only if Products tab is visible
       const productsTab = $("Products");
+
+      // Preserve current category selection so rebuilding doesn't reset it.
+      const prevCategory = $("categorySelect") ? String($("categorySelect").value) : "All";
+
+      // Rebuild category UI to apply preference-based filtering of buttons/options.
+      initCategoryUI();
+
+      // Restore previously selected category if it still exists.
+      updateCategorySelection(prevCategory);
+
       if (productsTab && productsTab.style.display === "block") {
         renderProductsList();
       }
     });
   }
+
+  initCategoryUI();
+  initPriceSlider();
+  initProductFiltersEvents();
+
+  updateBreadcrumb("Customer");
 });
