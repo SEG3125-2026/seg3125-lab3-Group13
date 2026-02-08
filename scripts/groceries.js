@@ -11,7 +11,7 @@ const products = [
     organic: true,
     containsWheat: false,
     price: 0.5,
-    image: "images/broccoli.svg",
+    image: "images/broccoli.png",
   },
   {
     name: "Carrots",
@@ -71,7 +71,7 @@ const products = [
     organic: true,
     containsWheat: false,
     price: 2.0,
-    image: "images/strawberry.jpg",
+    image: "images/strawberry.png",
   },
   {
     name: "Bread",
@@ -86,6 +86,42 @@ const products = [
     image: "images/bread.png",
   },
   {
+    name: "Muffin",
+    category: "Bakery",
+    vegetarian: true,
+    glutenFree: false,
+    lactoseIntolerant: false,
+    diabetic: false,
+    organic: false,
+    containsWheat: true, // wheat-based product
+    price: 2.50,
+    image: "images/muffin.png",
+  },
+  {
+    name: "Croissant",
+    category: "Bakery",
+    vegetarian: true,
+    glutenFree: false,
+    lactoseIntolerant: true,
+    diabetic: true,
+    organic: false,
+    containsWheat: true, // wheat-based product
+    price: 3.0,
+    image: "images/croissant.png",
+  },
+  {
+    name: "Cheese",
+    category: "Dairy",
+    vegetarian: true,
+    glutenFree: true,
+    lactoseIntolerant: false,
+    diabetic: false,
+    organic: true, // cows without synthetic hormones
+    containsWheat: false,
+    price: 3.50,
+    image: "images/cheese.png",
+  },
+  {
     name: "Yogurt",
     category: "Dairy",
     vegetarian: true,
@@ -95,7 +131,19 @@ const products = [
     organic: false,
     containsWheat: false,
     price: 4.0,
-    image: "images/yogurt.svg",
+    image: "images/yogurt.png",
+  },
+  {
+    name: "Milk",
+    category: "Dairy",
+    vegetarian: true,
+    glutenFree: true,
+    lactoseIntolerant: false,
+    diabetic: false,
+    organic: false,
+    containsWheat: false,
+    price: 4.0,
+    image: "images/milk.png",
   },
   {
     name: "Pork Chops",
@@ -107,7 +155,7 @@ const products = [
     organic: false,
     containsWheat: false,
     price: 4.0,
-    image: "images/Pork Chops.png",
+    image: "images/porkchop.png",
   },
   {
     name: "Salmon",
@@ -119,7 +167,19 @@ const products = [
     organic: false,
     containsWheat: false,
     price: 6.0,
-    image: "images/salmon.svg",
+    image: "images/salmon.png",
+  },
+  {
+    name: "Chicken Wing",
+    category: "Meats",
+    vegetarian: false, // meat
+    glutenFree: true,
+    lactoseIntolerant: true,
+    diabetic: true,
+    organic: false,
+    containsWheat: false,
+    price: 14.0,
+    image: "images/chickenwing.png",
   },
 ];
 

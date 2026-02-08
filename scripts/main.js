@@ -290,6 +290,7 @@ function initProductFiltersEvents() {
 }
 
 function renderProductRow(p, checkedSet) {
+
   const name = String(p.name ?? "Unnamed");
   const priceText = formatPrice(p.price);
   const imageSrc = p.image;
